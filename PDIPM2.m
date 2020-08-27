@@ -36,13 +36,9 @@ n = numel(x);
 k = numel(b);
 M = zeros( k , k );
 e = ones(n,1);
-%W = zeros(k,1);
 z = Struct.z;
-
-%mu = 0.1;
-%z = mu ./x;
-%epp = 0.005;
 epp = 0.5;
+
 fprintf('Primal-Dual Interior Point Method\n\n');
 fprintf('Iter\t\t\tPrimal\t\t\tDual\tRelative_duality_gap\t\tPrimal_infeas\t\tDual_infeas\n\n');
 fprintf(output,'Iter\t\t\tPrimal\t\t\tDual\tRelative_duality_gap\t\tPrimal_infeas\t\tDual_infeas\n\n');
@@ -91,24 +87,20 @@ while true
         status = 'Optimal';
         break;
     else
-        
-    %disp(x);
-    %fprintf("never met!!!");
-    % Compute the value of mu
-    %mu = epp * ((x' * z)/n);
-    %disp(mu);
     %================================== COEFFICIENT MATRIX ===============
     % solve the Linear system "Newton's method" with indefinitefactorization 
     % Forming matrix A of linear equation
+    
     A( 1:n , 1:n ) = -(Q + ( X \ Z));
     A(1:n , (n+1):(n+k) ) = E';
     A( (n+1):(n+k) , 1:n )= E ;
     A( (n+1):(n+k) , (n+1):(n+k))= M ;
-    %--------------- Coefficient matrix Factorization
+    
+    %--------------- Coefficient matrix Factorization----------------------
     [L,D,P] = ldl(A);
    
     
-   %==========================Affine   mu = 0 then z = 0=============================
+   %==========================Affine   mu = 0 =============================
    
    B_affine(1:n,1)=(Q * x ) + q - (E' * lambda) ;
    B_affine((n+1):(n+k),1) = b - (E * x) ;
@@ -121,21 +113,6 @@ while true
    %DeltaL_affine=Delta_affine((n+1):(n+k) , 1 );
    DeltaZ_affine= -z - ((X \ Z) * DeltaX_affine) ;
    
-%    %========================== Corr Step for test =========================
-%    B_corr(1:n,1)=zeros(n,1);
-%    B_corr((n+1):(n+k),1) = zeros(k,1);
-%    bb = P' * B_affine;
-%    cc = L\bb;
-%    dd = D\cc;
-%    ee = L'\dd;
-%    Delta_corr = P * ee;
-%    DeltaX_corr=Delta_corr(1:n,1);
-%    %DeltaL_affine=Delta_affine((n+1):(n+k) , 1 );
-%    %DeltaZ_corr= -z - ((X \ Z) * DeltaX_corr) ;
-%    DeltaZ_corr= -DeltaZ_affine - ((diag(DeltaX_affine) \ diag(DeltaZ_affine)) * DeltaX_corr) ;
-%    DeltaX_affine = (DeltaX_affine + DeltaX_corr);
-%    DeltaZ_affine = (DeltaZ_affine + DeltaZ_corr);
-%    %=======================================================================
    %========================Affine step length=============================
    % affine primal step length with upperbound = 1
    alphax_affine = 0.999 * (1/(max ( 1 , max((-DeltaX_affine ./ x))))) ;
@@ -143,39 +120,20 @@ while true
    % affine dual step length with upperbound = 1
    alphaz_affine=  0.999 * (1/(max ( 1 , max((-DeltaZ_affine ./ z)))));
    
+   % mu_affine computation
    mu_affine = ((x + (alphax_affine * DeltaX_affine))' * (z + (alphaz_affine * DeltaZ_affine))) / n;
+   
+   % computing cetering parameter
    epp = (mu_affine / ((x' * z) / n))^3;
-   %disp(epp);
-   %disp(mu);
-   %=======================================================================
-
-%     %============================ Second way to centering param============
-%     min_some = min(x .* z)/ ( ( x' * z ) / n );
-%     epp = 0.1 * (((min(0.05 * ((1 - min_some)/min_some),2)))^3);
-%     
-%     %======================================================================
-%     
-    %eq = q + (Q*x) -(E' * lambda) - z;
-    %B(1:n,1) = eq - (X \ ((mu*e) - ((X\Z)*e))) ;
+   %==========================Solving Step Direction system================
     B(1:n,1) = (Q * x ) + q - ( mu * ( X \ e)) - (E' * lambda) ;
     B((n+1):(n+k),1) = b - (E * x) ;
-    %B((n+1):(n+k),1) = (E * x) - b ;
-    %B((n+1):(n+k),1) = W ;
     
-%     par = q + (Q * x)- (E' * lambda)-z;
-%     phai = (mu * e) - ((X\Z)*e);
-%     B(1:n,1) = par - (X \ phai);
-%     B((n+1): (n+k),1) = b - (E * x); 
-    
-   % [L,D,P] = ldl(A);
-    %spy(L);
-    %Main --->> Delta =  P * (L'\(D\(L\(P'* B))));
     bb = P'*B;
     cc = L\bb;
     dd = D\cc;
     ee = L'\dd;
     Delta = P*ee;
-    %Delta = gmres(A,B);
     DeltaX = Delta( 1:n , 1 );
     DeltaL = Delta( ( n+1 ):( n+k ) , 1 );
     DeltaZ = ( mu * ( X \ e) )- z - ( ( X \ Z) * DeltaX ) ;

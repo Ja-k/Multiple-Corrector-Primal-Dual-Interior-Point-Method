@@ -39,8 +39,7 @@ Struct.b = b;
 e = ones(n,1);
 
 
-%------------------------------Creating E matrix---------------------------
-%--------------------------------------------------------------------------
+%------------------------------Creating E matrix-------------------
 % Initial kxn matrix of zeros to be modified by following 
 U = zeros( k , n );
 % counter variable for keep track of modifications
@@ -53,31 +52,30 @@ n_value = n ;
 
 % Loop k times (#rows)
 for c = 1:k_value
-    % in each row the #1's to be computed
+    % in each row the #1's 
     row = ceil(n_value / k_value);
-    % modifying U matrix by changing the element value (0) to 1
     for u = 1: row
         U(c,counter) = 1;
         counter = counter + 1;
     end
-    % Go to next set of columns
     n_value = n_value - row;
-    % Go to next row
     k_value = k_value - 1;
 end
 Struct.E = U; 
 %--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
-
-%---------------------------- Computing the initial point------------------
-%--------------------------------------------------------------------------
+% computring initial x
+%x = U' * ((U*U')^(-1)) *  b ;
 x = U' * ((U*U') \  b) ;
 
+%disp(x);
+%Struct.x = x;
+%lambda = ((U * U')^(-1)) * U * (Q * x + q);
 lambda = ((U * U') \ U) * (Q * x + q);
+%disp(lambda);
 Struct.lambda = lambda;
 
 z = (Q * x) + q - (U'*lambda) ;
-
+%disp(z);
 dx = max(-(1.5)* min(x),0);
 dz = max(-(1.5) * min(z),0);
 
@@ -91,7 +89,6 @@ x = x + ddx;
 z = z + ddz;
 
 Struct.x = x;
+
 Struct.z = z;
-%--------------------------------------------------------------------------
-%--------------------------------------------------------------------------
 
