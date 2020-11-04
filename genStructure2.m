@@ -12,18 +12,18 @@ if n <= 0 || k <= 0
     error('n and k must be greater than 0 ');
 end
 if k > n 
-    error('k must be <= n');
+    error('k must be < n');
 end    
 
 % Random sparse matrix for sparse instaces
-%G = sprandn( n - k , n , 0.01);
+G = sprandn( n - k , n , 0.01);
 
 % Random dense matrix for dense instaces
-G = randn( n - 10  , n);
+%G = randn( n - k  , n);
 
 % Semdefinite nxn matrix for objective function from randomly created matrices
-Q = G' * G;
-Struct.Q = Q;
+Q = G' * G ;
+Struct.Q = Q ;
 
 
 % Random nx1 vector as q vector in objective function
@@ -71,8 +71,8 @@ Struct.E = U;
 
 %---------------------------- Computing the initial point------------------
 %--------------------------------------------------------------------------
-x = U' * ((U*U') \  b) ;
-
+x = U' * ((U * U') \  b) ;
+%Struct.x = x;
 lambda = ((U * U') \ U) * (Q * x + q);
 Struct.lambda = lambda;
 
