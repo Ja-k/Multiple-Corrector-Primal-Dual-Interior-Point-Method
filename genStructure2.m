@@ -15,16 +15,34 @@ if k > n
     error('k must be < n');
 end    
 
-% Random sparse matrix for sparse instaces
-G = sprandn( n - k , n , 0.01);
+y = ceil( n / 10 );
 
 % Random dense matrix for dense instaces
-%G = randn( n - k  , n);
+%G = randn( n + y  , n);
+
+% Random sparse matrix for sparse instaces with density of 0.1
+%G = sprandn( n + y , n , 0.01);
+
+% Random sparse matrix for sparse instaces with denstiy of 0.01 and rc=0.9
+G = sprandn( n + y , n , 0.02);
+%fprintf("nonz in G = %d \n",nnz(G));
+
 
 % Semdefinite nxn matrix for objective function from randomly created matrices
 Q = G' * G ;
-Struct.Q = Q ;
+minEig = min(eig(full(Q)));
+fprintf('smallest eigenvalue = %d \n',minEig);
 
+if( minEig < 0)
+        Struct.Q = Q + ( (-minEig) * eye(n,n));
+    else
+    Struct.Q = Q ;
+end
+
+fprintf(" nnz(Q) = %d\n",nnz(Q));
+fprintf("----------------------------\n");
+
+spy(Q);
 
 % Random nx1 vector as q vector in objective function
 q = randn( n , 1 );
@@ -76,9 +94,9 @@ x = U' * ((U * U') \  b) ;
 lambda = ((U * U') \ U) * (Q * x + q);
 Struct.lambda = lambda;
 
-z = (Q * x) + q - (U'*lambda) ;
+z = (Q * x) + q - (U' * lambda) ;
 
-dx = max(-(1.5)* min(x),0);
+dx = max(-(1.5) * min(x),0);
 dz = max(-(1.5) * min(z),0);
 
 x = x + dx * e;
@@ -92,6 +110,8 @@ z = z + ddz;
 
 Struct.x = x;
 Struct.z = z;
+
+
 %--------------------------------------------------------------------------
 %--------------------------------------------------------------------------
 
