@@ -18,13 +18,13 @@ end
 y = ceil( n / 10 );
 
 % Random dense matrix for dense instaces
-%G = randn( n + y  , n);
+G = randn( n + y  , n);
 
 % Random sparse matrix for sparse instaces with density of 0.1
 %G = sprandn( n + y , n , 0.01);
 
 % Random sparse matrix for sparse instaces with denstiy of 0.01 and rc=0.9
-G = sprandn( n + y , n , 0.02);
+%G = sprandn( n + y , n , 0.0005);
 %fprintf("nonz in G = %d \n",nnz(G));
 
 

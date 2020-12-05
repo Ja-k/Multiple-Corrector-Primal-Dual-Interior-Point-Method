@@ -130,32 +130,33 @@ while true
    
    B = [r_d-(X\((mu_e)-XZe));b-(E*x)];   
    
-  % [DeltaX_pred , DeltaZ_pred] = predictor(L,P,D,B,X,Z,XZe,mu_e,e,n);
+   [DeltaX_pred , DeltaZ_pred] = predictor(L,P,D,B,X,Z,XZe,mu_e,e,n);
    %tic;
    % Solving The Linear System
-   Delta_pred = P * (L' \ (D \ (L \ (P' * B))));
-   DeltaX_pred = Delta_pred(1:n,1);
-   DeltaZ_pred = X \ ( ( mu_e ) - XZe - (Z * sparse(diag(DeltaX_pred)) * e) );
+%    Delta_pred = P * (L' \ (D \ (L \ (P' * B))));
+%    DeltaX_pred = Delta_pred(1:n,1);
+%    DeltaZ_pred = X \ ( ( mu_e ) - XZe - (Z * sparse(diag(DeltaX_pred)) * e) );
 %   
    %toc;
    %=============================Corrector=================================
    %tic;
+   
    for f = 1:2
        
-       dz = X\((mu_e) - XZe - (sparse(diag(DeltaX_pred)) * sparse(diag(DeltaZ_pred)) * e ));
-       
-        % Right hand side for corrector
-        BB = [r_d-dz ; b - ( E * x ) ];
-        
-        % sovling augmented Linear system
-        Delta = P * (L' \ (D \ (L \ ( P' * BB))));
-      
-        DeltaX = Delta(1:n,1);
-        DeltaL = Delta(n+1:n+k,1);
-        DeltaZ = dz - (X\(Z * sparse(diag(DeltaX)) * e)) ;     
+%        dz = X\((mu_e) - XZe - (sparse(diag(DeltaX_pred)) * sparse(diag(DeltaZ_pred)) * e ));
+%        
+%         % Right hand side for corrector
+%         BB = [r_d-dz ; b - ( E * x ) ];
+%         
+%         % sovling augmented Linear system
+%         Delta = P * (L' \ (D \ (L \ ( P' * BB))));
+%       
+%         DeltaX = Delta(1:n,1);
+%         DeltaL = Delta(n+1:n+k,1);
+%         DeltaZ = dz - (X\(Z * sparse(diag(DeltaX)) * e)) ;     
 
         
-    %    [DeltaX, DeltaL , DeltaZ] = corrector(L,P,D,X,Z,XZe,mu_e,e,n,E,x,DeltaX_pred,DeltaZ_pred,r_d,b,k);
+        [DeltaX, DeltaL , DeltaZ] = corrector(L,P,D,X,Z,XZe,mu_e,e,n,E,x,DeltaX_pred,DeltaZ_pred,r_d,b,k);
         
         DeltaX_pred = DeltaX ;
         DeltaZ_pred = DeltaZ ;
