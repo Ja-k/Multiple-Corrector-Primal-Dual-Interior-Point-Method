@@ -44,6 +44,7 @@ M = zeros( k , k );
 e = ones(n,1);
 z = Struct.z;
 
+% centerality parameter
 epp = 1/n;
 
 fprintf('Primal-Dual Interior Point Method\n\n');
@@ -56,12 +57,14 @@ while true
     
     xQx = ( x' * Q ) * x;
     
+    
     r_d =  ( Q * x ) + q - ( E' * lambda ) - z;
     
     
     % Primal Objective value
     primal_1 =( xQx ) + ( q' * x ) ;
     
+    % Primal objective value to compare to quadprog
     primal = 0.5 * ( xQx ) + ( q' * x ) ;
     
     
@@ -75,7 +78,7 @@ while true
     % Compute dual infeasibilty  "should be less than 1e-6" for optimality
     dual_infeasibility = norm ( r_d ) / ( norm (q) + 1 );
         
-    % Compute relative dualty gap "should be less than 1e-8" for optimalty
+    % Compute relative duality gap "should be less than 1e-8" for optimalty
     relative_duality_gap = ( primal_1 - ( b' * lambda  ) ) / ( abs ( primal_1 ) + 1 );
     
     %---------------------------------------------------------------------
@@ -83,6 +86,7 @@ while true
     % complimentarity value 
     mu = epp * ( ( x' * z ) / n );
     
+    % computing mu*e and store it in mu_e to avoid repeating it
     mu_e = mu * e;
     
     
@@ -96,10 +100,9 @@ while true
         break;
     end
     
-    %roh = max(1,norm(Q),norm(E),norm(q),norm(b));
-    %fprintf("r_d value = %d \n",abs(r_d));
-   % Stop when optimal solution found
-    if ((x' * z) < 1.000000e-8) %&& (abs(r_d) < 1.000000e-8)
+    
+   % Stop when optimal tolerance is reached
+    if ((x' * z) < 1.000000e-8)
         status = 'optimal';
         break;
     end   
@@ -120,7 +123,6 @@ while true
     
     % Coefficient Matrix
     A = [-T,E';E,M];
-    %fprintf("Condition of A = %d",cond(A));
     %--------------- Coefficient matrix Factorization----------------------
     
     [L,D,P] = ldl(A);
@@ -130,39 +132,35 @@ while true
    
    B = [r_d-(X\((mu_e)-XZe));b-(E*x)];   
    
-   [DeltaX_pred , DeltaZ_pred] = predictor(L,P,D,B,X,Z,XZe,mu_e,e,n);
-   %tic;
-   % Solving The Linear System
-%    Delta_pred = P * (L' \ (D \ (L \ (P' * B))));
-%    DeltaX_pred = Delta_pred(1:n,1);
-%    DeltaZ_pred = X \ ( ( mu_e ) - XZe - (Z * sparse(diag(DeltaX_pred)) * e) );
-%   
-   %toc;
+  % [DeltaX_pred , DeltaZ_pred] = predictor(L,P,D,B,X,Z,XZe,mu_e,e,n);
+   %Solving The predictor Linear System
+   Delta_pred = P * (L' \ (D \ (L \ (P' * B))));
+   DeltaX_pred = Delta_pred(1:n,1);
+   DeltaZ_pred = X \ ( ( mu_e ) - XZe - (Z * sparse(diag(DeltaX_pred)) * e) );   
+   %=======================================================================
    %=============================Corrector=================================
-   %tic;
    
    for f = 1:2
        
-%        dz = X\((mu_e) - XZe - (sparse(diag(DeltaX_pred)) * sparse(diag(DeltaZ_pred)) * e ));
-%        
-%         % Right hand side for corrector
-%         BB = [r_d-dz ; b - ( E * x ) ];
-%         
-%         % sovling augmented Linear system
-%         Delta = P * (L' \ (D \ (L \ ( P' * BB))));
-%       
-%         DeltaX = Delta(1:n,1);
-%         DeltaL = Delta(n+1:n+k,1);
-%         DeltaZ = dz - (X\(Z * sparse(diag(DeltaX)) * e)) ;     
+       dz = X\((mu_e) - XZe - (sparse(diag(DeltaX_pred)) * sparse(diag(DeltaZ_pred)) * e ));
+       
+        % Right hand side for corrector
+        BB = [r_d-dz ; b - ( E * x ) ];
+        
+        % sovling augmented Linear system
+        Delta = P * (L' \ (D \ (L \ ( P' * BB))));
+      
+        DeltaX = Delta(1:n,1);
+        DeltaL = Delta(n+1:n+k,1);
+        DeltaZ = dz - (X\(Z * sparse(diag(DeltaX)) * e)) ;     
 
         
-        [DeltaX, DeltaL , DeltaZ] = corrector(L,P,D,X,Z,XZe,mu_e,e,n,E,x,DeltaX_pred,DeltaZ_pred,r_d,b,k);
+       % [DeltaX, DeltaL , DeltaZ] = corrector(L,P,D,X,Z,XZe,mu_e,e,n,E,x,DeltaX_pred,DeltaZ_pred,r_d,b,k);
         
         DeltaX_pred = DeltaX ;
         DeltaZ_pred = DeltaZ ;
        
-    end
-    %toc;
+   end
     %====================================================================== 
        % Calculating the step length
         alpha_primal = ( 1 / ( max ( 1 , max ( - ( DeltaX ./ x ) ) ) ) ) ;
@@ -192,5 +190,3 @@ while true
     i = i + 1;
 % End of Main iteration    
 end  
-%fclose(output);
-%fprintf("Corr_time = %s \n",sum(corr_time));
