@@ -3,10 +3,10 @@ function [DeltaX, DeltaL , DeltaZ] = corrector(L,P,D,X,Z,XZe,mu_e,e,n,E,x,DeltaX
         dz = X\((mu_e) - XZe - (sparse(diag(DeltaX_pred)) * sparse(diag(DeltaZ_pred)) * e ));
        
         % Right hand side for corrector
-        BB = [r_d-dz;b-(E*x)];
+        B_c = [r_d-dz;b-(E*x)];
         
         % sovling augmented Linear system
-        Delta = P * (L' \ (D \ (L \ ( P' * BB))));
+        Delta = P * (L' \ (D \ (L \ ( P' * B_c))));
       
         DeltaX = Delta(1:n,1);
         DeltaL = Delta(n+1:n+k,1);
